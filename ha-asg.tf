@@ -55,9 +55,12 @@ resource "aws_launch_configuration" "jenkins-controller" {
     encrypted             = var.disk_root.encrypted
   }
   user_data = templatefile("${path.module}/user-data.yaml", {
-    aws_ec2_instance_name                        = local.name
     aws_region                                   = var.aws_region,
     aws_zones                                    = join(" ", var.aws_zones[*]),
+    aws_ec2_instance_name                        = local.name
+    aws_ec2_instance_hostname_fqdn               = var.hostname_fqdn
+    route53_enabled                              = var.route53_enabled
+    route53_private_hosted_zone_id               = var.route53_private_hosted_zone_id
     disk_jenkins_home_enable                     = var.disk_jenkins_home.enabled
     disk_jenkins_home_type                       = var.disk_jenkins_home.type
     aws_efs_id                                   = (var.disk_jenkins_home.enabled && var.disk_jenkins_home.type == "EFS") ? aws_efs_file_system.jenkins-home-efs[0].id : ""
