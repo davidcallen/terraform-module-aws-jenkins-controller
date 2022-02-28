@@ -210,6 +210,41 @@ variable "name_suffix" {
   type        = string
   default     = ""
 }
+variable "domain_name" {
+  type        = string
+  description = "DNS Domain name"
+  default     = ""
+}
+variable "domain_netbios_name" {
+  type        = string
+  description = "NetBIOS Domain name (aka Legacy Domain Name). Limited to 15 chars and in UPPERCASE."
+  default     = ""
+}
+variable "domain_join_user_name" {
+  type        = string
+  description = ""
+  default     = ""
+}
+variable "domain_join_user_password" {
+  type        = string
+  description = ""
+  default     = ""
+}
+variable "domain_login_allowed_users" {
+  type        = list(string)
+  description = "Active Directory User Names that allowed to RDP login to computer"
+  default     = []
+}
+variable "domain_login_allowed_groups" {
+  type        = list(string)
+  description = "Active Directory Groups that allowed to RDP login to computer"
+  default     = []
+}
+variable "domain_security_group_ids" {
+  type        = list(string)
+  description = "The IDs of any Domain-related security groups to be applied"
+  default     = []
+}
 variable "aws_instance_type" {
   type = string
   # e.g. m5.micro

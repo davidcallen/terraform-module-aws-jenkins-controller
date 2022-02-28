@@ -15,13 +15,23 @@ resource "aws_instance" "jenkins-controller" {
   }
   disable_api_termination = var.environment.resource_deletion_protection
   user_data = templatefile("${path.module}/user-data.yaml", {
-    aws_region                                   = var.aws_region,
-    aws_zones                                    = join(" ", var.aws_zones[*]),
-    aws_ec2_instance_name                        = local.name
-    aws_ec2_instance_hostname_fqdn               = var.hostname_fqdn
-    route53_enabled                              = var.route53_enabled ? "TRUE" : "FALSE"
-    route53_direct_dns_update_enabled            = var.route53_direct_dns_update_enabled ? "TRUE" : "FALSE"
-    route53_private_hosted_zone_id               = var.route53_private_hosted_zone_id
+    aws_region                        = var.aws_region,
+    aws_zones                         = join(" ", var.aws_zones[*]),
+    aws_ec2_instance_name             = local.name
+    aws_ec2_instance_hostname_fqdn    = var.hostname_fqdn
+    route53_enabled                   = var.route53_enabled ? "TRUE" : "FALSE"
+    route53_direct_dns_update_enabled = var.route53_direct_dns_update_enabled ? "TRUE" : "FALSE"
+    route53_private_hosted_zone_id    = var.route53_private_hosted_zone_id
+
+    domain_host_name_short_ad_friendly = local.domain_host_name_short_ad_friendly
+    domain_name                        = var.domain_name
+    domain_realm_name                  = upper(var.domain_name)
+    domain_netbios_name                = var.domain_netbios_name
+    domain_join_user_name              = var.domain_join_user_name
+    domain_join_user_password          = var.domain_join_user_password
+    domain_login_allowed_groups        = join(",", var.domain_login_allowed_groups[*])
+    domain_login_allowed_users         = join(",", var.domain_login_allowed_users[*])
+
     aws_efs_id                                   = (var.disk_jenkins_home.enabled && var.disk_jenkins_home.type == "EFS") ? aws_efs_file_system.jenkins-home-efs[0].id : ""
     ebs_device_name                              = (var.disk_jenkins_home.enabled && var.disk_jenkins_home.type == "EBS") ? "/dev/nvme1n1" : ""
     aws_asg_name                                 = ""
