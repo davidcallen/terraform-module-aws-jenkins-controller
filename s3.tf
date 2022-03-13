@@ -4,18 +4,31 @@ locals {
 # S3 bucket to allow us to pass jenkins config files (configuration-as-code yaml) to jenkins but files too large to pass via ec2 user-data.
 resource "aws_s3_bucket" "jenkins-config-files" {
   bucket        = local.bucket_name
-  acl           = "private"
   force_destroy = true
-  versioning {
-    enabled = false
+  lifecycle {
+    prevent_destroy = false
+    # cant use variable here for resource_deletion_protection :(
   }
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+  tags = merge(var.global_default_tags, var.environment.default_tags, {
+    Name = local.bucket_name
+  })
+}
+resource "aws_s3_bucket_versioning" "jenkins-config-files" {
+  bucket = aws_s3_bucket.jenkins-config-files.id
+  versioning_configuration {
+    status = "Suspended"
+  }
+}
+resource "aws_s3_bucket_server_side_encryption_configuration" "jenkins-config-files" {
+  bucket = aws_s3_bucket.jenkins-config-files.bucket
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
+}
+resource "aws_s3_bucket_policy" "jenkins-config-files" {
+  bucket = aws_s3_bucket.jenkins-config-files.bucket
   policy = jsonencode({
     "Version" = "2012-10-17"
     "Statement" = [
@@ -49,14 +62,9 @@ resource "aws_s3_bucket" "jenkins-config-files" {
       }
     ]
   })
-  lifecycle {
-    prevent_destroy = false
-    # cant use variable here for resource_deletion_protection :(
-  }
-  tags = merge(var.global_default_tags, var.environment.default_tags, {
-    Name = local.bucket_name
-  })
 }
+data "aws_canonical_user_id" "current_user" {}
+
 data "aws_iam_instance_profile" "jenkins-controller" {
   name = var.iam_instance_profile
 }

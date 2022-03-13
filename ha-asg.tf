@@ -29,13 +29,11 @@ resource "aws_autoscaling_group" "jenkins-controller" {
   default_cooldown     = var.ha_auto_scaling_group.default_cooldown # Start the failover instance quickly
   termination_policies = ["OldestInstance"]
   suspended_processes  = var.ha_auto_scaling_group.suspended_processes
-  tags = [
-    {
-      key                 = "Name"
-      value               = local.asg_name
-      propagate_at_launch = true
-    }
-  ]
+  tag {
+    key                 = "Name"
+    value               = local.asg_name
+    propagate_at_launch = true
+  }
 }
 locals {
   vpc_security_group_ids_storage = (var.disk_jenkins_home.enabled && var.disk_jenkins_home.type == "EFS") ? [aws_security_group.jenkins-home-efs[0].id] : []
@@ -48,20 +46,20 @@ resource "aws_launch_configuration" "jenkins-controller" {
   image_id             = var.aws_ami_id
   instance_type        = var.aws_instance_type
   iam_instance_profile = var.iam_instance_profile
-  security_groups      = [aws_security_group.jenkins-controller.id]
+  security_groups      = local.vpc_security_group_ids
   key_name             = var.aws_ssh_key_name
   root_block_device {
     delete_on_termination = true
     encrypted             = var.disk_root.encrypted
   }
   user_data = templatefile("${path.module}/user-data.yaml", {
-    aws_region                                   = var.aws_region,
-    aws_zones                                    = join(" ", var.aws_zones[*]),
-    aws_ec2_instance_name                        = local.name
-    aws_ec2_instance_hostname_fqdn               = var.hostname_fqdn
-    route53_enabled                              = var.route53_enabled ? "TRUE" : "FALSE"
-    route53_direct_dns_update_enabled            = var.route53_direct_dns_update_enabled ? "TRUE" : "FALSE"
-    route53_private_hosted_zone_id               = var.route53_private_hosted_zone_id
+    aws_region                        = var.aws_region,
+    aws_zones                         = join(" ", var.aws_zones[*]),
+    aws_ec2_instance_name             = local.name
+    aws_ec2_instance_hostname_fqdn    = var.hostname_fqdn
+    route53_enabled                   = var.route53_enabled ? "TRUE" : "FALSE"
+    route53_direct_dns_update_enabled = var.route53_direct_dns_update_enabled ? "TRUE" : "FALSE"
+    route53_private_hosted_zone_id    = var.route53_private_hosted_zone_id
 
     domain_host_name_short_ad_friendly = local.domain_host_name_short_ad_friendly
     domain_name                        = var.domain_name

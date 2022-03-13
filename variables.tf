@@ -38,6 +38,11 @@ variable "route53_direct_dns_update_enabled" {
   default     = false
   type        = bool
 }
+variable "route53_public_hosted_zone_id" {
+  description = "Route53 Public Hosted Zone ID (if in use)."
+  default     = ""
+  type        = string
+}
 variable "route53_private_hosted_zone_id" {
   description = "Route53 Private Hosted Zone ID (if in use)."
   default     = ""
@@ -72,15 +77,12 @@ variable "environment" {
 variable "vpc" {
   description = "VPC information. These are inputs to the VPC module github.com/terraform-aws-modules/terraform-aws-vpc.git"
   type = object({
-    vpc_id = string
-    # VPC cidr block. Must not overlap with other VPCs in this aws account or others within our organisation.
-    cidr_block = string
-    # List of VPC private subnet cidr blocks. Must not overlap with other VPCs in this aws account or others within our organisation.
+    vpc_id                      = string # VPC cidr block. Must not overlap with other VPCs in this aws account or others within our organisation.
+    cidr_block                  = string # Must not overlap with other VPCs in this aws account or others within our organisation.
     private_subnets_cidr_blocks = list(string)
-    private_subnets_ids         = list(string)
-    # List of VPC public subnet cidr blocks. Must not overlap with other VPCs in this aws account or others within our organisation.
-    public_subnets_cidr_blocks = list(string)
-    public_subnets_ids         = list(string)
+    private_subnets_ids         = list(string) # List of VPC public subnet cidr blocks. Must not overlap with other VPCs in this aws account or others within our organisation.
+    public_subnets_cidr_blocks  = list(string)
+    public_subnets_ids          = list(string)
   })
   default = {
     vpc_id                      = ""
@@ -99,10 +101,11 @@ variable "ha_high_availability_enabled" {
 variable "ha_public_load_balancer" {
   description = "High Availability Public Load Balancer config"
   type = object({
-    enabled    = bool
-    arn        = string
-    arn_suffix = string
-    port       = number
+    enabled       = bool
+    arn           = string
+    arn_suffix    = string
+    hostname_fqdn = string
+    port          = number
     ssl_cert = object({
       use_amazon_provider = bool
       # Has the overhead of needing external DNS verification to activate it
@@ -118,10 +121,11 @@ variable "ha_public_load_balancer" {
     # Dont want users reaching internal healthcheck page
   })
   default = {
-    enabled    = false
-    arn        = ""
-    arn_suffix = ""
-    port       = 443
+    enabled       = false
+    arn           = ""
+    arn_suffix    = ""
+    hostname_fqdn = ""
+    port          = 443
     ssl_cert = {
       use_amazon_provider = true
       # Has the overhead of needing external DNS verification to activate it
@@ -139,10 +143,11 @@ variable "ha_public_load_balancer" {
 variable "ha_private_load_balancer" {
   description = "High Availability Private Load Balancer config"
   type = object({
-    enabled    = bool
-    arn        = string
-    arn_suffix = string
-    port       = number
+    enabled       = bool
+    arn           = string
+    arn_suffix    = string
+    hostname_fqdn = string
+    port          = number
     ssl_cert = object({
       use_amazon_provider = bool
       # Has the overhead of needing external DNS verification to activate it
@@ -158,10 +163,11 @@ variable "ha_private_load_balancer" {
     # Dont want users reaching internal healthcheck page
   })
   default = {
-    enabled    = false
-    arn        = ""
-    arn_suffix = ""
-    port       = 443
+    enabled       = false
+    arn           = ""
+    arn_suffix    = ""
+    hostname_fqdn = ""
+    port          = 443
     ssl_cert = {
       use_amazon_provider = true
       # Has the overhead of needing external DNS verification to activate it
